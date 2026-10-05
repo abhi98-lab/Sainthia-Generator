@@ -186,5 +186,46 @@ export function downloadBlob(blob: Blob, filename: string): void {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/**
+ * Utility to open the generated DOCX in the device's available document viewer
+ * using standard web APIs (Web Share API for files or object URL navigation).
+ */
+export async function openDocxBlob(blob: Blob, filename: string): Promise<boolean> {
+  const file = new File([blob], filename, {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+
+  // 1. Try Web Share API (native sheet on Android, iOS, Windows, macOS that opens in Office / Docs viewer)
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: filename,
+      });
+      return true;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return true;
+      }
+    }
+  }
+
+  // 2. Open via Blob URL in new window/tab for browsers that support direct document preview/association
+  try {
+    const fileUrl = URL.createObjectURL(file);
+    const opened = window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    if (opened) {
+      window.setTimeout(() => URL.revokeObjectURL(fileUrl), 120000);
+      return true;
+    }
+  } catch {
+    // Fall through to anchor click
+  }
+
+  // 3. Fallback: prompt open/download trigger
+  downloadBlob(blob, filename);
+  return true;
 }

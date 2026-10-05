@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   Download,
   Trash2,
+  ExternalLink,
 } from 'lucide-react';
 import {
   CaseRecord,
@@ -26,7 +27,7 @@ import {
   checkIndexedDBHealth,
   formatTimestamp,
 } from './db';
-import { downloadBlob } from './docxEngine';
+import { downloadBlob, openDocxBlob } from './docxEngine';
 import { TopBar, ActiveView } from './components/TopBar';
 import { CaseVaultView } from './components/CaseVaultView';
 import { MasterTemplatesView } from './components/MasterTemplatesView';
@@ -344,14 +345,25 @@ export default function App() {
 
                         <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                           {req.fileBlob && (
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadSavedRecent(req)}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded hover:bg-[#F1F5F9] transition-colors cursor-pointer"
-                            >
-                              <Download className="w-3.5 h-3.5 text-[#475569]" />
-                              <span>Download .docx</span>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openDocxBlob(req.fileBlob!, req.filename)}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-white bg-[#1E3A8A] hover:bg-[#1E40AF] rounded transition-colors cursor-pointer"
+                                title="Open document in device viewer"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Open</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadSavedRecent(req)}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                              >
+                                <Download className="w-3.5 h-3.5 text-[#475569]" />
+                                <span>Download</span>
+                              </button>
+                            </>
                           )}
 
                           {deletingRecentId !== req.id ? (

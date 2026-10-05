@@ -10,6 +10,9 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  ExternalLink,
+  FileText,
+  X,
 } from 'lucide-react';
 import {
   CaseRecord,
@@ -24,6 +27,7 @@ import {
 import {
   generateDocxFromMaster,
   downloadBlob,
+  openDocxBlob,
   PlaceholderReplacement,
 } from '../docxEngine';
 
@@ -57,6 +61,10 @@ export const GeneratorWorkspaceView: React.FC<GeneratorWorkspaceViewProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successModal, setSuccessModal] = useState<{
+    filename: string;
+    blob: Blob;
+  } | null>(null);
 
   // Today's date in YYYY-MM-DD for date inputs
   const todayIso = new Date().toISOString().split('T')[0];
@@ -584,6 +592,12 @@ export const GeneratorWorkspaceView: React.FC<GeneratorWorkspaceViewProps> = ({
       setSuccessMessage(
         `Generated and downloaded "${outFilename}". Requisition added to Recent Requisitions.`
       );
+
+      // Open clean success dialog with filename, Open File button, and Download Again
+      setSuccessModal({
+        filename: outFilename,
+        blob: outputDocxBlob,
+      });
     } catch {
       setValidationError(
         'An error occurred during DOCX processing. Ensure the uploaded template is a valid Microsoft Word .docx file.'
@@ -1333,6 +1347,85 @@ export const GeneratorWorkspaceView: React.FC<GeneratorWorkspaceViewProps> = ({
           </div>
         </form>
       </section>
+
+      {/* Clean Success Dialog */}
+      {successModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="success-modal-title"
+        >
+          <div className="bg-white border border-[#CBD5E1] rounded-lg shadow-xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#15803D] shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 id="success-modal-title" className="text-base font-bold text-[#0F172A]">
+                    Requisition Generated
+                  </h3>
+                  <span className="text-xs font-semibold text-[#15803D]">
+                    Downloaded Successfully
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSuccessModal(null)}
+                className="text-[#94A3B8] hover:text-[#0F172A] p-1 rounded hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Generated Filename Box */}
+            <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md space-y-1">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+                Generated Document
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#0F172A] break-all">
+                <FileText className="w-4 h-4 text-[#1E3A8A] shrink-0" />
+                <span>{successModal.filename}</span>
+              </div>
+            </div>
+
+            {/* Actions: Open File & Download Again */}
+            <div className="space-y-2 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => openDocxBlob(successModal.blob, successModal.filename)}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#1E3A8A] hover:bg-[#1E40AF] rounded-md transition-colors cursor-pointer shadow-2xs"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Open File</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => downloadBlob(successModal.blob, successModal.filename)}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#94A3B8] rounded-md transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Download className="w-4 h-4 text-[#475569]" />
+                  <span>Download Again</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSuccessModal(null)}
+                className="w-full py-2 text-xs font-semibold text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer text-center"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
