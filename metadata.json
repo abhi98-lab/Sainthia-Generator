@@ -1,0 +1,6 @@
+{
+  "name": "Sainthia Generator",
+  "description": "Investigation Requisition Workspace for SAINTHIA PS with local IndexedDB Case Vault and Master Templates management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
